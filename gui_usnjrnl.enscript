@@ -1,0 +1,100 @@
+// Copyright 2014 @ChipRAFP
+// See the file 'LICENSE' for copying permission.
+
+class MainClass;
+class MainDialogClass : DialogClass {
+  MainClass M;
+ 
+  CheckBoxClass CSV;
+  CheckBoxClass TSV;
+  CheckBoxClass ChkOpenFolder;
+  
+
+
+   
+  MainDialogClass (MainClass m) :
+    super(null, m.ScriptName),
+    M = m,
+    CSV(this, "CSV Output", SAME, NEXT, DEFAULT, DEFAULT, 1, m.DoCsv),
+    TSV(this, "TSV Output", SAME, NEXT, DEFAULT, DEFAULT, 0, m.DoTsv),
+	ChkOpenFolder (this, "Open Destination Folder", START, NEXT, DEFAULT, DEFAULT, 0, m.OpenFolder)
+  {
+  }
+ 
+  virtual void ChildEvent (const EventClass &e) {
+    super::ChildEvent(e);
+  }	
+
+	}
+	
+	
+class MainClass {
+  ItemCacheClass ItemCache;
+  String ScriptName,
+         PythonPath,
+         PyScriptPath,
+         PyArgs,
+         TypeTerm,
+         TempDir;
+  bool DoCsv,
+       DoTsv,
+	   OpenFolder;
+	           
+  MainClass () :
+    ScriptName("UsnJrnl Parser"),
+    PythonPath("C:\\Python27\\python.exe"),
+    PyScriptPath("C:\\scripts\\usnjrnl.py")
+    
+  {
+  }
+ 
+  void Main(CaseClass c) {
+    SystemClass::ClearConsole(SystemClass::SHOWCONSOLE);
+
+    if (c) {
+		
+      MainDialogClass md(this);
+      if (md.Execute() == SystemClass::OK) {
+			
+          long offset, length;
+          if (ItemClass item = c.GetCurrentItem(offset, length)) {
+            ItemCacheClass itemCache(c);
+            LocalFileClass outputFile();
+            Console.WriteLine(String::Format("Processing UsnJrnl File"));
+            if ((FileClass inputFile = itemCache.GetRawFile(item)) &&
+              outputFile.Open(c.TemporaryFolder() + "\\" + item.Name(), FileClass::WRITE)) {
+              outputFile.WriteBuffer(inputFile);
+              
+              String InFile = outputFile.Name();
+              String OutFile = c.ExportFolder() + "\\" + "UsnJrnl";
+              
+              ExecuteClass exe();
+              exe.SetFolder(PythonPath.GetFilePath());
+              exe.SetApplication(PythonPath);
+              
+              PyArgs += "-f " + '"' + InFile + '"' + " ";
+              if (DoCsv)
+                PyArgs += "-c ";
+              if (DoTsv)
+                PyArgs += "-t ";
+              
+              PyArgs += "-o " + '"' + OutFile + '"' + " ";
+              
+              exe.SetCommandLine(String::Format("\"{0}\" {1}", PyScriptPath, PyArgs));
+              if (exe.Start(LocalMachine, 1000)) {
+                Console.WriteLine(exe.Output());
+              }
+            Console.WriteLine(String::Format("CSV Written out to: {0}", OutFile));
+			if (OpenFolder)
+			SystemClass::BrowsePath(c.ExportFolder());
+            }
+          }
+        
+      }
+    Console.WriteLine("Process Completed\n{0}", SystemClass::LastError());
+    Console.WriteLine("For Large UsnJrnl Files allow a minute to finish writing the output file!\n{0}", SystemClass::LastError());
+    }
+  }
+
+  
+}

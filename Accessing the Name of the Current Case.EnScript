@@ -1,0 +1,41 @@
+class MainClass {
+
+  /*
+
+    The default definition of the MainClass::Main()
+    function allows for the current case to be passed in as a
+    parameter with the label 'c'.
+
+  */
+
+  void Main(CaseClass c) {
+    SystemClass::ClearConsole(SHOWCONSOLE);
+
+    /*
+
+      EnScript doesn't support pointers but class objects are
+      implemented as pointers behind the scenes.
+
+      Therefore, if an object doesn't exist, its value will be
+      null.
+
+    */
+
+    if (c) // No need to check for c != null
+    {
+      /*
+
+        CaseClass inherits the Name() property from NodeClass.
+        Most properties of internal EnScript classes are property-
+        accessor functions, hence the parentheses.
+
+      */
+
+      Console.WriteLine(c.Name());
+    }
+    else
+    {
+      Console.WriteLine("No case!");
+    }
+  }
+}

@@ -1,0 +1,29 @@
+class MainClass {
+  void Main(CaseClass c) {
+    if (c) {
+      SystemClass::ClearConsole(SystemClass::SHOWCONSOLE);
+      long offset, length;
+      if (ItemClass item = c.GetCurrentItem(offset, length)) {
+        ItemCacheClass itemCache(c);
+        LocalFileClass outputFile();
+        if ((FileClass inputFile = itemCache.GetRawFile(item)) &&
+          outputFile.Open(c.TemporaryFolder() + "\\" + item.Name(), FileClass::WRITE)) {
+          outputFile.WriteBuffer(inputFile);
+          String pythonPath = "C:\\Python27\\python.exe";
+          String pyScriptPath = "C:\\scripts\\analyzemft.py";
+          String py_arg_in = outputFile.Name();
+          String py_arg_out = c.ExportFolder() + "\\" + "analyzedmft.csv";
+          ExecuteClass exe();
+          exe.SetFolder(pythonPath.GetFilePath());
+          exe.SetApplication(pythonPath);
+          exe.SetCommandLine(String::Format("\"{0}\" -e -f \"{1}\" -o \"{2}\"", pyScriptPath, py_arg_in, py_arg_out));
+          if (exe.Start(LocalMachine, 1000)) {
+            Console.WriteLine(exe.Output());
+          }
+        Console.WriteLine(String::Format("CSV Written out to: {0}", py_arg_out));
+        }
+      }
+      Console.WriteLine("Process Completed!\n{0}", SystemClass::LastError());
+    }
+  }
+}
